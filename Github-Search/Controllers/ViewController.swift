@@ -56,7 +56,9 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
+        
         setUp()
+        
         textField.delegate = self
         let gesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboad))
         view.addGestureRecognizer(gesture)
@@ -65,7 +67,49 @@ class ViewController: UIViewController {
         super.viewDidAppear(animated)
         searchButton.isEnabled = true
     }
-    
+
+}
+
+
+// MARK: - Textfield Delegate Methods
+extension ViewController: UITextFieldDelegate{
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        self.logoTopConstraint.constant = 100
+        self.textField.becomeFirstResponder()
+        UIView.animate(withDuration: 0.5) {
+            self.view.layoutIfNeeded()
+        }
+    }
+}
+
+
+// MARK: - Setup Methods
+extension ViewController{
+    func setUp(){
+        view.addSubview(logo)
+        logo.image = logo.image?.withRenderingMode(.alwaysTemplate)
+        logo.tintColor = .white
+        logoTopConstraint = logo.topAnchor.constraint(equalTo: view.topAnchor, constant: view.bounds.height/4)
+        NSLayoutConstraint.activate([
+            logo.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            logo.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            logoTopConstraint,
+            logo.heightAnchor.constraint(equalToConstant: view.bounds.height/4)
+        ])
+        view.addSubview(getStartedButton)
+        NSLayoutConstraint.activate([
+            getStartedButton.topAnchor.constraint(equalTo: logo.bottomAnchor, constant: 50),
+            getStartedButton.heightAnchor.constraint(equalToConstant: 50),
+            getStartedButton.widthAnchor.constraint(equalToConstant: view.bounds.width/2),
+            getStartedButton.centerXAnchor.constraint(equalTo: logo.centerXAnchor)
+        ])
+        getStartedButton.addTarget(self, action: #selector(getStarted), for: .touchUpInside)
+
+    }
+}
+
+// MARK: - @objc Functions
+extension ViewController{
     @objc func dismissKeyboad(){
         textField.resignFirstResponder()
         
@@ -118,40 +162,6 @@ class ViewController: UIViewController {
         searchButton.addTarget(self, action: #selector(searchGithub), for: .touchUpInside)
         
         
-        self.logoTopConstraint.constant = 100
-        self.textField.becomeFirstResponder()
-        UIView.animate(withDuration: 0.5) {
-            self.view.layoutIfNeeded()
-        }
-    }
-    
-    func setUp(){
-        view.addSubview(logo)
-        logo.image = logo.image?.withRenderingMode(.alwaysTemplate)
-        logo.tintColor = .white
-        logoTopConstraint = logo.topAnchor.constraint(equalTo: view.topAnchor, constant: view.bounds.height/4)
-        NSLayoutConstraint.activate([
-            logo.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            logo.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            logoTopConstraint,
-            logo.heightAnchor.constraint(equalToConstant: view.bounds.height/4)
-        ])
-        view.addSubview(getStartedButton)
-        NSLayoutConstraint.activate([
-            getStartedButton.topAnchor.constraint(equalTo: logo.bottomAnchor, constant: 50),
-            getStartedButton.heightAnchor.constraint(equalToConstant: 50),
-            getStartedButton.widthAnchor.constraint(equalToConstant: view.bounds.width/2),
-            getStartedButton.centerXAnchor.constraint(equalTo: logo.centerXAnchor)
-        ])
-        getStartedButton.addTarget(self, action: #selector(getStarted), for: .touchUpInside)
-
-    }
-
-
-}
-
-extension ViewController: UITextFieldDelegate{
-    func textFieldDidBeginEditing(_ textField: UITextField) {
         self.logoTopConstraint.constant = 100
         self.textField.becomeFirstResponder()
         UIView.animate(withDuration: 0.5) {

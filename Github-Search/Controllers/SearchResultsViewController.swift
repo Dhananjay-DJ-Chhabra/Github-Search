@@ -50,6 +50,43 @@ class SearchResultsViewController: UIViewController{
         resultsTable.frame = view.bounds
     }
     
+    
+}
+
+
+// MARK: - Table View Delegate and Data Source Methods
+extension SearchResultsViewController: UITableViewDelegate, UITableViewDataSource{
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return searchResult.items?.count ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ProfilesTableViewCell.identifier) as? ProfilesTableViewCell else { return UITableViewCell() }
+        guard let item = searchResult.items?[indexPath.row] else { return UITableViewCell() }
+        
+        cell.configureCell(url: item.avatar_url, username: searchResult.items?[indexPath.row].login)
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        guard let item = searchResult.items?[indexPath.row] else { return }
+        fetchUser(query: item.login)
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        guard let items = searchResult.items, let totalCount = searchResult.total_count else { return }
+        if indexPath.row == items.count - 1 && items.count < totalCount {
+            pageNumber += 1
+            doPagination(pageNumber: pageNumber)
+        }
+    }
+    
+}
+
+
+// MARK: - Network Calls
+extension SearchResultsViewController{
     func fetchUser(query: String?){
         guard let query = query else {return}
         guard let url = URL(string: "https://api.github.com/users/\(query)") else {return}
@@ -83,34 +120,4 @@ class SearchResultsViewController: UIViewController{
             }
         }.resume()
     }
-}
-
-extension SearchResultsViewController: UITableViewDelegate, UITableViewDataSource{
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return searchResult.items?.count ?? 0
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ProfilesTableViewCell.identifier) as? ProfilesTableViewCell else { return UITableViewCell() }
-        guard let item = searchResult.items?[indexPath.row] else { return UITableViewCell() }
-        
-        cell.configureCell(url: item.avatar_url, username: searchResult.items?[indexPath.row].login)
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        guard let item = searchResult.items?[indexPath.row] else { return }
-        fetchUser(query: item.login)
-    }
-    
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        guard let items = searchResult.items, let totalCount = searchResult.total_count else { return }
-        if indexPath.row == items.count - 1 && items.count < totalCount {
-            pageNumber += 1
-            doPagination(pageNumber: pageNumber)
-        }
-    }
-    
-    
 }

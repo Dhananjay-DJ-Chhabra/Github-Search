@@ -46,24 +46,14 @@ class ProfileViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    @objc func shareProfile(){
-           UIGraphicsBeginImageContext(view.frame.size)
-           view.layer.render(in: UIGraphicsGetCurrentContext()!)
-           let image = UIGraphicsGetImageFromCurrentImageContext()
-           UIGraphicsEndImageContext()
+    private func fetchImage(){
+        guard let imageUrl = user.avatar_url, let url = URL(string: imageUrl) else {return}
+        profilePic.sd_setImage(with: url)
+    }
+}
 
-           let textToShare = "Check out this Github profile"
-
-        if let login = user.login, let profileUrl = URL(string: "https://api.github.com/users/\(login)") {
-               let objectsToShare = [textToShare, profileUrl, image ?? #imageLiteral(resourceName: "app-logo")] as [Any]
-               let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-
-               activityVC.excludedActivityTypes = [UIActivity.ActivityType.airDrop, UIActivity.ActivityType.addToReadingList]
-
-               activityVC.popoverPresentationController?.sourceView = profilePic
-               self.present(activityVC, animated: true, completion: nil)
-           }    }
-    
+// MARK: - Setup Methods
+extension ProfileViewController{
     private func setUp(){
         view.addSubview(profilePic)
         NSLayoutConstraint.activate([
@@ -83,24 +73,6 @@ class ProfileViewController: UIViewController {
         ])
         addItemsToStack()
         
-    }
-    
-    @objc func seeFollowerDetails(){
-        guard let followerUrl = user.followers_url, let query = user.login, let followersCount = user.followers else { return }
-        guard let url = URL(string: followerUrl) else {return}
-        URLSession.shared.dataTask(with: URLRequest(url: url)){ data, _, error in
-            guard let data = data, error == nil else{ return }
-            do{
-                let results = try JSONDecoder().decode([Item].self, from: data)
-                let result = SearchResult(total_count: followersCount, items: results)
-                DispatchQueue.main.async {
-                    let vc = SearchResultsViewController(searchResult: result, query: query)
-                    self.navigationController?.pushViewController(vc, animated: true)
-                }
-            }catch(let error){
-                print(error.localizedDescription)
-            }
-        }.resume()
     }
     
     private func addItemsToStack(){
@@ -131,7 +103,7 @@ class ProfileViewController: UIViewController {
                     valueLabel.text = "Not Available" }
             case 1:
                 titleLabel.text = "Followers Detail: "
-                if let name = user.followers_url{
+                if let _ = user.followers_url{
                     valueLabel.text = "See Details"
                     valueLabel.textColor = .blue
                     
@@ -187,9 +159,47 @@ class ProfileViewController: UIViewController {
             stackView.addArrangedSubview(stack)
         }
     }
-    
-    private func fetchImage(){
-        guard let imageUrl = user.avatar_url, let url = URL(string: imageUrl) else {return}
-        profilePic.sd_setImage(with: url)
+}
+
+// MARK: - @objc Functions
+extension ProfileViewController{
+    @objc func shareProfile(){
+           UIGraphicsBeginImageContext(view.frame.size)
+           view.layer.render(in: UIGraphicsGetCurrentContext()!)
+           let image = UIGraphicsGetImageFromCurrentImageContext()
+           UIGraphicsEndImageContext()
+
+           let textToShare = "Check out this Github profile"
+
+        if let login = user.login, let profileUrl = URL(string: "https://api.github.com/users/\(login)") {
+               let objectsToShare = [textToShare, profileUrl, image ?? #imageLiteral(resourceName: "app-logo")] as [Any]
+               let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
+
+               activityVC.excludedActivityTypes = [UIActivity.ActivityType.airDrop, UIActivity.ActivityType.addToReadingList]
+
+               activityVC.popoverPresentationController?.sourceView = profilePic
+               self.present(activityVC, animated: true, completion: nil)
+           }
     }
+    
+    
+    
+    @objc func seeFollowerDetails(){
+        guard let followerUrl = user.followers_url, let query = user.login, let followersCount = user.followers else { return }
+        guard let url = URL(string: followerUrl) else {return}
+        URLSession.shared.dataTask(with: URLRequest(url: url)){ data, _, error in
+            guard let data = data, error == nil else{ return }
+            do{
+                let results = try JSONDecoder().decode([Item].self, from: data)
+                let result = SearchResult(total_count: followersCount, items: results)
+                DispatchQueue.main.async {
+                    let vc = SearchResultsViewController(searchResult: result, query: query)
+                    self.navigationController?.pushViewController(vc, animated: true)
+                }
+            }catch(let error){
+                print(error.localizedDescription)
+            }
+        }.resume()
+    }
+    
 }
